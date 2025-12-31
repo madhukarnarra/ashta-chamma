@@ -2,11 +2,12 @@
 class SoundManager {
     constructor() {
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.muted = false;
+        this.muted = localStorage.getItem('ashta_chamma_muted') === 'true';
     }
 
     toggleMute() {
         this.muted = !this.muted;
+        localStorage.setItem('ashta_chamma_muted', this.muted);
         return this.muted;
     }
 
@@ -19,6 +20,7 @@ class SoundManager {
     }
 
     playDiceShake() {
+        if (this.muted) return;
         // Simulate rattling noise with noise buffer
         const duration = 0.3;
         const bufferSize = this.ctx.sampleRate * duration;

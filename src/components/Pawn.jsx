@@ -3,11 +3,10 @@ import { motion } from 'framer-motion';
 import PawnIcon from './PawnIcon';
 
 const Pawn = ({ playerIdx, onClick, isCurrentTurn, index, countInCell }) => {
-    // Optimized distribution for smaller pawns
-    // Spreads pawns in a 2x2 grid within the cell for easier clicking
+    // Glassy clustering
     const offset = countInCell > 1 ? {
-        x: (index % 2) * 28 - 14,
-        y: Math.floor(index / 2) * 28 - 14
+        x: (index % 2) * 25 - 12,
+        y: Math.floor(index / 2) * 25 - 12
     } : { x: 0, y: 0 };
 
     return (
@@ -15,36 +14,46 @@ const Pawn = ({ playerIdx, onClick, isCurrentTurn, index, countInCell }) => {
             layout
             className={`pawn ${isCurrentTurn ? 'active' : ''}`}
             onClick={onClick}
-            whileHover={isCurrentTurn ? { scale: 1.35 } : {}}
+            whileHover={isCurrentTurn ? { scale: 1.1, y: -4 } : {}}
             whileTap={isCurrentTurn ? { scale: 0.95 } : {}}
             initial={false}
             animate={{
                 x: offset.x,
                 y: offset.y,
-                scale: isCurrentTurn ? 1.25 : 1
+                scale: 1
             }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             style={{
-                width: '45%', // Smaller size as requested
-                height: '45%',
+                width: '50%',
+                height: '50%',
                 position: 'absolute',
                 zIndex: (isCurrentTurn ? 100 : 10) + index,
                 cursor: isCurrentTurn ? 'pointer' : 'default',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
             }}
         >
             <PawnIcon playerIndex={playerIdx} className="w-full h-full" />
 
             {isCurrentTurn && (
                 <motion.div
-                    animate={{ opacity: [0, 0.6, 0], scale: [1, 1.4, 1] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
+                    layoutId="active-indicator"
                     style={{
-                        position: 'absolute', top: -4, left: -4, right: -4, bottom: -4,
-                        border: '2px solid white',
+                        position: 'absolute',
+                        width: '140%',
+                        height: '140%',
                         borderRadius: '50%',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
                         pointerEvents: 'none',
-                        filter: 'url(#chalk-filter)'
+                        zIndex: -1
                     }}
+                    animate={{
+                        opacity: [0.3, 0.6, 0.3],
+                        scale: [1, 1.1, 1]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
                 />
             )}
         </motion.div>

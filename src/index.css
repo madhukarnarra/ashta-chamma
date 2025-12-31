@@ -1,20 +1,22 @@
 :root {
-  /* Solid Dark Gray Theme */
-  --bg-dark: #222222;
-  --chalk-light: rgba(240, 240, 240, 0.9);
-  --chalk-smudge: rgba(255, 255, 255, 0.05);
-  --safe-zone-bg: rgba(144, 238, 144, 0.1);
-  /* Soft Mint Green */
-  --home-bg: rgba(255, 215, 0, 0.08);
-  /* Subtle Gold */
-  --title-yellow: #f4c430;
+  /* Liquid Gold & Glass Theme */
+  --bg-deep: #080808;
+  --smoke-glass: rgba(20, 20, 20, 0.6);
+  --liquid-gold: #FFD700;
+  --gold-glow: rgba(255, 215, 0, 0.4);
+  --gold-leaf: #B8860B;
 
-  --pawn-red: #ff5e5e;
-  --pawn-green: #63ff63;
-  --pawn-yellow: #fdfd5c;
-  --pawn-blue: #6161ff;
+  /* Crystal Player Colors */
+  --p0-crystal: #ff4444;
+  /* Red */
+  --p1-crystal: #00ff88;
+  /* Green */
+  --p2-crystal: #ffff44;
+  /* Yellow/Gold */
+  --p3-crystal: #4488ff;
+  /* Blue */
 
-  --font-rural: 'Outfit', 'Inter', 'Courier New', Courier, monospace;
+  --perspective: 1200px;
 }
 
 * {
@@ -30,9 +32,12 @@ html {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: var(--bg-dark);
-  font-family: var(--font-rural);
-  color: var(--chalk-light);
+  background-color: var(--bg-deep);
+  background-image:
+    radial-gradient(circle at 50% -20%, #2a2a00 0%, transparent 60%),
+    radial-gradient(circle at 50% 120%, #1a1a1a 0%, transparent 60%);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #fff;
 }
 
 #root {
@@ -42,19 +47,58 @@ html {
   flex-direction: column;
 }
 
-/* Solid Dark Gray Background */
-.rock-surface {
-  background-color: var(--bg-dark);
-  background-image:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  filter: url(#sharpen-filter);
+.marble-surface {
+  background: transparent;
+  position: relative;
+  overflow: hidden;
 }
 
-/* The Board Container Style */
+.board-3d-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+}
+
 .chalk-board {
   position: relative;
-  border: 4px solid var(--chalk-smudge);
-  border-radius: 2px;
+  background: var(--smoke-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 4px solid #1a1a1a;
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.8),
+    inset 0 0 40px rgba(255, 215, 0, 0.05);
+  border-radius: 4px;
+}
+
+/* Ornate Gold Corner Accents */
+.chalk-board::before,
+.chalk-board::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--liquid-gold);
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.chalk-board::before {
+  top: -2px;
+  left: -2px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.chalk-board::after {
+  bottom: -2px;
+  right: -2px;
+  border-left: 0;
+  border-top: 0;
 }
 
 .cell {
@@ -62,30 +106,41 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid var(--chalk-smudge);
+  border: 0.5px solid rgba(255, 215, 0, 0.05);
 }
 
 button {
-  background: transparent;
-  border: 2px solid var(--chalk-white);
-  color: var(--chalk-white);
-  padding: 0.6em 1.2em;
+  background: rgba(40, 40, 40, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--liquid-gold);
+  color: var(--liquid-gold);
+  padding: 0.8em 2em;
   font-size: 1em;
-  font-weight: bold;
-  font-family: inherit;
-  cursor: pointer;
+  font-weight: 700;
   text-transform: uppercase;
-  user-select: none;
-  filter: url(#chalk-filter);
-  transition: transform 0.1s;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 2px;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+}
+
+button:hover {
+  background: var(--liquid-gold);
+  color: #000;
+  box-shadow: 0 0 20px var(--gold-glow);
 }
 
 button:active {
-  transform: scale(0.95);
-  opacity: 0.7;
+  transform: scale(0.96);
 }
 
-/* Scrollbar hidden */
+button:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
 ::-webkit-scrollbar {
   display: none;
 }

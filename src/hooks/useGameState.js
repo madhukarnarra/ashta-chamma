@@ -35,6 +35,8 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
         if (rankings.length >= activePlayerIds.length - 1 && activePlayerIds.length > 1) return;
         if (waitingForMove) return;
 
+        soundManager.playClick();
+
         const rolls = Array(4).fill(0).map(() => Math.random() < 0.35);
         const faceUpCount = rolls.filter(Boolean).length;
         const moveValue = ROLL_VALUES[faceUpCount];
@@ -88,7 +90,19 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
         if (currentPos === START_POSITION) return PATHS[pIdx][0];
         const path = PATHS[pIdx];
         const currentPathIdx = path.indexOf(currentPos);
-        return path[currentPathIdx + steps];
+        const player = players[pIdx];
+
+        let targetPathIdx = currentPathIdx + steps;
+
+        // OUTER RING LOOPING LOGIC
+        // Indices 0-15 are the outer ring. Index 16 is the entry to inner.
+        if (currentPathIdx <= 15 && targetPathIdx > 15 && !player.hasKilled) {
+            // Loop back within the outer ring (0-15)
+            // Example: at 15, roll 1 -> target becomes (15 + 1) % 16 = 0
+            targetPathIdx = targetPathIdx % 16;
+        }
+
+        return path[targetPathIdx];
     };
 
     const nextUnfinishedTurn = (currentIndex) => {
@@ -130,13 +144,16 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
         if (currentPathIndex === -1) return false;
 
         const targetPathIndex = currentPathIndex + steps;
-        if (targetPathIndex >= path.length) return false;
 
-        const targetBoardIndex = path[targetPathIndex];
-
+        // If no kill, we loop on outer ring (0-15).
+        // If they HAVE a kill, they can proceed past 15.
         if (currentPathIndex <= 15 && targetPathIndex > 15 && !player.hasKilled) {
-            return false;
+            // Always allowed because we'll loop in calculateTarget
+            return true;
         }
+
+        // If they HAVE a kill, they follow indices 16... onwards
+        if (targetPathIndex >= path.length) return false;
 
         return true;
     };

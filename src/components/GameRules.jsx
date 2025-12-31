@@ -179,7 +179,14 @@ const GameRules = ({ isOpen, onClose }) => {
                                     <span style={{ color: '#fbbf24', minWidth: '20px' }}>⚠</span>
                                     <div>
                                         <span>కనీసం ఒక కాయను చంపే వరకు మీరు <strong style={{ color: 'white' }}>లోపలి గదిలోకి</strong> వెళ్లలేరు!</span>
-                                        <div style={{ color: '#d6d3d1', fontSize: '0.875rem' }}>Cannot enter inner circle (God House) without a kill.</div>
+                                        <div style={{ color: '#d6d3d1', fontSize: '0.875rem' }}>Cannot enter inner circle without a kill.</div>
+                                    </div>
+                                </li>
+                                <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '16px', fontSize: '1.125rem', lineHeight: '1.75' }}>
+                                    <span style={{ color: '#4ade80', minWidth: '20px' }}>↺</span>
+                                    <div>
+                                        <span>చంపే వరకు కాయ దారిలోనే <strong style={{ color: '#4ade80' }}>తిరుగుతూ</strong> ఉంటుంది.</span>
+                                        <div style={{ color: '#d6d3d1', fontSize: '0.875rem' }}>Pawn will loop around outer ring until a kill is achieved.</div>
                                     </div>
                                 </li>
                                 <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '1.125rem', lineHeight: '1.75' }}>

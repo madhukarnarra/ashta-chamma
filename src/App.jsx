@@ -6,7 +6,7 @@ import PlayerPanel from './components/PlayerPanel';
 import GameRules from './components/GameRules';
 import { soundManager } from './utils/soundManager';
 
-function GameRunner({ playerCount, isVsAI, onBack, onShowRules }) {
+function GameRunner({ playerCount, isVsAI, onBack, onShowRules, isMuted, toggleMute }) {
   const activeIds = playerCount === 2 ? [0, 2] : [0, 1, 2, 3];
   const aiIds = isVsAI ? [2] : [];
 
@@ -14,13 +14,6 @@ function GameRunner({ playerCount, isVsAI, onBack, onShowRules }) {
     players, currentPlayerIndex, diceValue, rawDiceState, rollDice,
     movePawn, gameLog, winner, rankings, waitingForMove, validMoves, boardShake
   } = useGameState(activeIds, aiIds);
-
-  const [isMuted, setIsMuted] = useState(false);
-
-  const toggleMute = () => {
-    const muted = soundManager.toggleMute();
-    setIsMuted(muted);
-  };
 
   const isSystemTurn = aiIds.includes(currentPlayerIndex);
 
@@ -163,6 +156,12 @@ function App() {
   const [gameMode, setGameMode] = useState(null);
   const [isVsAI, setIsVsAI] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [isMuted, setIsMuted] = useState(soundManager.muted);
+
+  const toggleMute = () => {
+    const muted = soundManager.toggleMute();
+    setIsMuted(muted);
+  };
 
   const startLevel = (count, vsAI = false) => {
     setIsVsAI(vsAI);
@@ -170,7 +169,7 @@ function App() {
   };
 
   return (
-    <div className="rock-surface" style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div className="marble-surface" style={{ width: '100%', height: '100%', position: 'relative' }}>
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
         <defs>
           <filter id="chalk-filter">
@@ -186,8 +185,23 @@ function App() {
       {!gameMode ? (
         <div className="menu fade-in" style={{
           display: 'flex', flexDirection: 'column', gap: '1.5rem',
-          height: '100%', justifyContent: 'center', alignItems: 'center'
+          height: '100%', justifyContent: 'center', alignItems: 'center',
+          position: 'relative'
         }}>
+          {/* Main Menu Mute Toggle */}
+          <button
+            onClick={toggleMute}
+            style={{
+              position: 'absolute', top: '20px', right: '20px',
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '50%', width: '50px', height: '50px',
+              fontSize: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            {isMuted ? "🔇" : "🔊"}
+          </button>
+
           <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
             <h1 style={{
               fontSize: 'min(14vw, 5rem)', margin: 0,
@@ -220,7 +234,15 @@ function App() {
           </button>
         </div>
       ) : (
-        <GameRunner key={`${gameMode}-${isVsAI}`} playerCount={gameMode} isVsAI={isVsAI} onBack={() => setGameMode(null)} onShowRules={() => setShowRules(true)} />
+        <GameRunner
+          key={`${gameMode}-${isVsAI}`}
+          playerCount={gameMode}
+          isVsAI={isVsAI}
+          onBack={() => setGameMode(null)}
+          onShowRules={() => setShowRules(true)}
+          isMuted={isMuted}
+          toggleMute={toggleMute}
+        />
       )}
 
       <GameRules isOpen={showRules} onClose={() => setShowRules(false)} />
