@@ -6,15 +6,23 @@ import PlayerPanel from './components/PlayerPanel';
 import GameRules from './components/GameRules';
 import { soundManager } from './utils/soundManager';
 
-function GameRunner({ playerCount, onBack, onShowRules }) {
+function GameRunner({ playerCount, isVsAI, onBack, onShowRules }) {
   const activeIds = playerCount === 2 ? [0, 2] : [0, 1, 2, 3];
-  const { players, currentPlayerIndex, diceValue, rawDiceState, rollDice, movePawn, gameLog, winner, waitingForMove, validMoves, boardShake } = useGameState(activeIds);
+  const aiIds = isVsAI ? [2] : [];
+
+  const {
+    players, currentPlayerIndex, diceValue, rawDiceState, rollDice,
+    movePawn, gameLog, winner, waitingForMove, validMoves, boardShake
+  } = useGameState(activeIds, aiIds);
+
   const [isMuted, setIsMuted] = useState(false);
 
   const toggleMute = () => {
     const muted = soundManager.toggleMute();
     setIsMuted(muted);
   };
+
+  const isSystemTurn = aiIds.includes(currentPlayerIndex);
 
   return (
     <div style={{
@@ -23,12 +31,11 @@ function GameRunner({ playerCount, onBack, onShowRules }) {
       height: '100dvh',
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'flex-start', // Start from top
+      justifyContent: 'flex-start',
       alignItems: 'center',
-      background: 'linear-gradient(to bottom, #2c3e50, #000000)'
     }}>
 
-      {/* Header - Flow Layout (Not Absolute) for Safety */}
+      {/* Header */}
       <div style={{
         width: '100%',
         height: '50px',
@@ -42,26 +49,16 @@ function GameRunner({ playerCount, onBack, onShowRules }) {
         <button onClick={toggleMute} style={{ marginLeft: '15px', background: 'transparent', border: 'none', boxShadow: 'none', fontSize: '1.2rem', padding: 0 }}>
           {isMuted ? "🔇" : "🔊"}
         </button>
-        <button
-          onClick={() => onShowRules(true)}
-          style={{
-            marginLeft: '15px',
-            padding: '6px 12px',
-            fontSize: '0.85rem',
-            background: 'rgba(255, 255, 255, 0.15)',
-            border: '1px solid rgba(255,255,255,0.3)',
-            borderRadius: '20px',
-            color: '#f4e1d2',
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '6px'
-          }}
-          className="hover:bg-white/20 transition-all font-semibold"
-        >
-          <span>?</span> Rules
+        <button onClick={() => onShowRules(true)} style={{
+          marginLeft: '15px', padding: '6px 12px', fontSize: '0.85rem',
+          background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255,255,255,0.3)',
+          borderRadius: '20px', color: '#f4e1d2', cursor: 'pointer'
+        }}>
+          Rules
         </button>
       </div>
 
-      {/* Game Area - Fills rest of screen */}
+      {/* Game Area */}
       <div style={{
         position: 'relative',
         flex: 1,
@@ -70,34 +67,33 @@ function GameRunner({ playerCount, onBack, onShowRules }) {
         overflow: 'hidden'
       }}>
 
-        {/* HUDs - Absolute within Game Area. Safe from Header now. */}
-        {/* Top Left */ activeIds.includes(3) && (
+        {/* HUDs */}
+        {activeIds.includes(3) && (
           <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 20 }}>
             <PlayerPanel player={players[3]} playerIdx={3} isActive={currentPlayerIndex === 3} movePawn={movePawn} waitingForMove={waitingForMove} />
           </div>
         )}
-        {/* Top Right */ activeIds.includes(2) && (
+        {activeIds.includes(2) && (
           <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 20 }}>
-            <PlayerPanel player={players[2]} playerIdx={2} isActive={currentPlayerIndex === 2} movePawn={movePawn} waitingForMove={waitingForMove} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {isVsAI && <span style={{ fontSize: '0.6rem', opacity: 0.6, color: '#ffff55' }}>SYSTEM AI</span>}
+              <PlayerPanel player={players[2]} playerIdx={2} isActive={currentPlayerIndex === 2} movePawn={movePawn} waitingForMove={waitingForMove} />
+            </div>
           </div>
         )}
-        {/* Bottom Left */ activeIds.includes(0) && (
+        {activeIds.includes(0) && (
           <div style={{ position: 'absolute', bottom: '100px', left: '10px', zIndex: 20 }}>
             <PlayerPanel player={players[0]} playerIdx={0} isActive={currentPlayerIndex === 0} movePawn={movePawn} waitingForMove={waitingForMove} />
           </div>
         )}
-        {/* Bottom Right */ activeIds.includes(1) && (
+        {activeIds.includes(1) && (
           <div style={{ position: 'absolute', bottom: '100px', right: '10px', zIndex: 20 }}>
             <PlayerPanel player={players[1]} playerIdx={1} isActive={currentPlayerIndex === 1} movePawn={movePawn} waitingForMove={waitingForMove} />
           </div>
         )}
 
-        {/* Board - Centered */}
-        <div style={{
-          width: 'min(90vw, 55vh)', /* Slightly smaller to ensure fit with HUDs */
-          aspectRatio: '1/1',
-          marginBottom: '60px' /* Push up slightly for Dice */
-        }}>
+        {/* Board */}
+        <div style={{ width: 'min(90vw, 55vh)', aspectRatio: '1/1', marginBottom: '60px' }}>
           <GameBoard
             players={players}
             currentPlayerIndex={currentPlayerIndex}
@@ -108,14 +104,14 @@ function GameRunner({ playerCount, onBack, onShowRules }) {
           />
         </div>
 
-        {/* Dice Control - Absolute Bottom Center */}
+        {/* Dice Control */}
         <div style={{
           position: 'absolute', bottom: '10px', left: '0', right: '0',
           display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
-          height: '90px', pointerEvents: 'none' /* Passthrough for clicks outside buttons */
+          height: '90px', pointerEvents: isSystemTurn ? 'none' : 'auto'
         }}>
-          <div style={{ pointerEvents: 'auto', transform: 'scale(0.8)' }}>
-            <DiceControl onRoll={rollDice} disabled={waitingForMove || !!winner} diceValue={diceValue} rawDiceState={rawDiceState} />
+          <div style={{ transform: 'scale(0.8)', opacity: isSystemTurn ? 0.5 : 1 }}>
+            <DiceControl onRoll={rollDice} disabled={waitingForMove || !!winner || isSystemTurn} diceValue={diceValue} rawDiceState={rawDiceState} />
           </div>
         </div>
 
@@ -124,12 +120,15 @@ function GameRunner({ playerCount, onBack, onShowRules }) {
       {winner && (
         <div className="winner-overlay" style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.95)', zIndex: 100,
+          background: 'rgba(0,0,0,0.95)', zIndex: 200,
           display: 'flex', flexDirection: 'column',
-          justifyContent: 'center', alignItems: 'center'
+          justifyContent: 'center', alignItems: 'center',
+          backdropFilter: 'blur(10px)'
         }}>
-          <h1 style={{ fontSize: '3rem', color: winner.color }}>{winner.name} WINS!</h1>
-          <button onClick={onBack} style={{ fontSize: '1.5rem', marginTop: '20px' }}>Back to Menu</button>
+          <h1 style={{ fontSize: '3rem', color: winner.color, textAlign: 'center' }}>
+            {isVsAI && winner.id === 2 ? "SYSTEM WINS!" : `${winner.name.toUpperCase()} WINS!`}
+          </h1>
+          <button onClick={onBack} style={{ fontSize: '1.2rem', marginTop: '40px', padding: '12px 40px' }}>Play Again</button>
         </div>
       )}
     </div>
@@ -138,64 +137,63 @@ function GameRunner({ playerCount, onBack, onShowRules }) {
 
 function App() {
   const [gameMode, setGameMode] = useState(null);
+  const [isVsAI, setIsVsAI] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
-  const handleShowRules = () => {
-    console.log('SHOW RULES CLICKED');
-    setShowRules(true);
-  };
-
-  const handleCloseRules = () => {
-    console.log('CLOSE RULES CLICKED');
-    setShowRules(false);
+  const startLevel = (count, vsAI = false) => {
+    setIsVsAI(vsAI);
+    setGameMode(count);
   };
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div className="rock-surface" style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+        <defs>
+          <filter id="chalk-filter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5" />
+          </filter>
+          <filter id="sharpen-filter">
+            <feConvolveMatrix order="3" kernelMatrix="0 -1 0 -1 5 -1 0 -1 0" preserveAlpha="true" />
+          </filter>
+        </defs>
+      </svg>
+
       {!gameMode ? (
         <div className="menu fade-in" style={{
-          display: 'flex', flexDirection: 'column', gap: '2rem',
+          display: 'flex', flexDirection: 'column', gap: '1.5rem',
           height: '100%', justifyContent: 'center', alignItems: 'center'
         }}>
-          <div style={{ textAlign: 'center' }}>
-            <h1 style={{
-              fontSize: 'min(12vw, 4rem)', margin: 0,
-              color: '#f4c430',
-              textShadow: '0 4px 10px rgba(0,0,0,0.8)'
-            }}>
-              అష్టా చమ్మా
-            </h1>
-            <h2 style={{
-              fontSize: 'min(5vw, 1.2rem)', margin: '10px 0 0 0',
-              color: '#a0a0a0',
-              textTransform: 'uppercase', letterSpacing: '4px'
-            }}>
-              Ashta Chamma
-            </h2>
+          <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+            <h1 style={{ fontSize: 'min(12vw, 4rem)', margin: 0, color: '#f4c430' }}>అష్టా చమ్మా</h1>
+            <h2 style={{ fontSize: 'min(5vw, 1.2rem)', margin: 0, color: '#a0a0a0', letterSpacing: '4px' }}>Ashta Chamma</h2>
           </div>
 
-          <button onClick={() => setGameMode(2)} style={{ fontSize: '1.1rem', padding: '1rem 3rem', width: '75%', maxWidth: '300px' }}>
+          <button onClick={() => startLevel(2, true)} style={{ fontSize: '1.1rem', padding: '1rem', width: '280px' }}>
+            1 Player (vs System)
+          </button>
+          <button onClick={() => startLevel(2, false)} style={{ fontSize: '1.1rem', padding: '1rem', width: '280px' }}>
             2 Players
           </button>
-          <button onClick={() => setGameMode(4)} style={{ fontSize: '1.1rem', padding: '1rem 3rem', width: '75%', maxWidth: '300px' }}>
+          <button onClick={() => startLevel(4, false)} style={{ fontSize: '1.1rem', padding: '1rem', width: '280px' }}>
             4 Players
           </button>
+
           <button
-            onClick={handleShowRules}
+            onClick={() => setShowRules(true)}
             style={{
-              fontSize: '1rem', padding: '0.8rem 2rem', width: '75%', maxWidth: '250px',
+              fontSize: '0.9rem', padding: '0.6rem', width: '200px',
               background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#ccc'
             }}
-            className="hover:bg-white/10 transition-all font-semibold"
           >
             How To Play
           </button>
         </div>
       ) : (
-        <GameRunner key={gameMode} playerCount={gameMode} onBack={() => setGameMode(null)} onShowRules={handleShowRules} />
+        <GameRunner key={`${gameMode}-${isVsAI}`} playerCount={gameMode} isVsAI={isVsAI} onBack={() => setGameMode(null)} onShowRules={() => setShowRules(true)} />
       )}
 
-      <GameRules isOpen={showRules} onClose={handleCloseRules} />
+      <GameRules isOpen={showRules} onClose={() => setShowRules(false)} />
     </div>
   );
 }

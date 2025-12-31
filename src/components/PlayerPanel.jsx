@@ -5,31 +5,40 @@ const PlayerPanel = ({ player, playerIdx, isActive, isTurn, movePawn, waitingFor
     const basePawns = player.pawns.map((pos, idx) => ({ pos, idx })).filter(p => p.pos === -1);
     const finishedPawns = player.pawns.filter(p => p === 12).length;
 
+    const colors = [
+        "var(--pawn-red)",
+        "var(--pawn-green)",
+        "var(--pawn-yellow)",
+        "var(--pawn-blue)"
+    ];
+    const playerColor = colors[playerIdx] || player.color;
+
     return (
         <div className={`player-panel ${isActive ? 'active' : ''}`} style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
-            padding: '2px', // minimal padding
-            backgroundColor: isActive ? 'rgba(0,0,0,0.5)' : 'transparent',
-            border: isActive ? `2px solid ${player.color === '#ff4444' ? 'red' : player.color === '#44ff44' ? 'green' : player.color === '#eebb00' ? 'yellow' : 'blue'}` : 'none',
-            borderRadius: '6px',
-            opacity: isActive ? 1 : 0.7,
+            padding: '4px',
+            backgroundColor: isActive ? 'rgba(255,255,255,0.05)' : 'transparent',
+            border: isActive ? `2px solid ${playerColor}` : 'none',
+            borderRadius: '4px',
+            opacity: isActive ? 1 : 0.6,
             transition: 'all 0.3s',
-            transform: isActive ? 'scale(1.1)' : 'scale(0.9)' // Scale focused player up
+            transform: isActive ? 'scale(1.1)' : 'scale(0.9)',
+            filter: 'url(#chalk-filter)'
         }}>
-            {/* Base Area - Very small now */}
+            {/* Base Area */}
             <div className="base-area" style={{
-                width: '45px',
-                height: '45px',
-                background: 'rgba(0,0,0,0.3)',
+                width: '50px',
+                height: '50px',
+                background: 'rgba(255,255,255,0.02)',
                 borderRadius: '50%',
                 position: 'relative',
-                marginBottom: '2px',
-                border: `1px solid ${player.color}`
+                marginBottom: '4px',
+                border: `1px dashed ${playerColor}`
             }}>
                 {basePawns.map((p, i) => (
                     <div key={p.idx} style={{
-                        position: 'absolute', width: '18px', height: '18px',
-                        top: i < 2 ? '4px' : '22px', left: (i % 2) * 20 + 2 + 'px'
+                        position: 'absolute', width: '22px', height: '22px',
+                        top: i < 2 ? '2px' : '24px', left: (i % 2) * 24 + 2 + 'px'
                     }}>
                         <Pawn
                             playerIdx={playerIdx}
@@ -43,8 +52,9 @@ const PlayerPanel = ({ player, playerIdx, isActive, isTurn, movePawn, waitingFor
 
             {/* Name Tag */}
             <div style={{
-                background: player.color, color: 'black', fontWeight: 'bold',
-                fontSize: '0.6rem', padding: '1px 4px', borderRadius: '4px'
+                color: playerColor, fontWeight: 'bold',
+                fontSize: '0.8rem', padding: '1px 6px',
+                textShadow: `0 0 5px ${playerColor}44`
             }}>
                 {player.name.substring(0, 3)} {player.hasKilled ? "⚔" : ""} ({finishedPawns})
             </div>

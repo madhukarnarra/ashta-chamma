@@ -6,10 +6,8 @@ const START_POSITION = -1;
 const HOME_POSITION = 12; // Center index
 const ROLL_VALUES = { 0: 8, 1: 1, 2: 2, 3: 3, 4: 4 };
 
-export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
+export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
 
-    // Initialize only active players? Or all but skip? 
-    // Let's Init ALL, but logic only cycles through activeIds.
     const [players, setPlayers] = useState(
         PLAYER_CONFIG.map((cfg) => ({
             ...cfg,
@@ -18,7 +16,6 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
         }))
     );
 
-    // currentTurnIndex refers to the INDEX in activePlayerIds array, NOT player ID directly
     const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
     const currentPlayerId = activePlayerIds[currentTurnIndex];
 
@@ -26,7 +23,7 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
     const [rawDiceState, setRawDiceState] = useState(null);
     const [waitingForMove, setWaitingForMove] = useState(false);
     const [validMoves, setValidMoves] = useState({}); // { pawnIndex: targetBoardIndex }
-    const [boardShake, setBoardShake] = useState(false); // Trigger for shake animation
+    const [boardShake, setBoardShake] = useState(false);
 
     const [consecutiveSpecialRolls, setConsecutiveSpecialRolls] = useState(0);
     const [gameLog, setGameLog] = useState(['Welcome! Roll cowries to begin.']);
@@ -34,10 +31,14 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
 
     const log = (msg) => setGameLog(prev => [msg, ...prev].slice(0, 5));
 
+    // BIASED ROLL: Increase probability of ASHTA (8)
+    // 0 up = 8. If we lower the probability of being face up, 0 up becomes more likely.
     const rollDice = useCallback(() => {
         if (winner || waitingForMove) return;
 
-        const rolls = Array(4).fill(0).map(() => Math.random() < 0.5);
+        // BIAS: 35% chance to be UP, 65% chance to be DOWN.
+        // p(8) = 0.65^4 = ~18% (3x increase from baseline 6.25%)
+        const rolls = Array(4).fill(0).map(() => Math.random() < 0.35);
         const faceUpCount = rolls.filter(Boolean).length;
         const moveValue = ROLL_VALUES[faceUpCount];
 
@@ -55,7 +56,7 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
             log(`Rolled ${moveValue}! (Extra Turn)`);
 
             if (newConsecutive >= 3) {
-                log("Three consecutive Ashtas/Chammas! Turn forfeited.");
+                log("Three consecutive special rolls! Turn forfeited.");
                 setTimeout(() => endTurn(moveValue), 1000);
                 return;
             }
@@ -65,7 +66,6 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
         }
 
         const currentPlayer = players[currentPlayerId];
-        // Calculate Valid Moves
         const moves = {};
         let hasPossibleMove = false;
 
@@ -73,7 +73,6 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
             const can = canMove(currentPlayerId, idx, moveValue);
             if (can) {
                 hasPossibleMove = true;
-                // Calculate target for highlight
                 moves[idx] = calculateTarget(currentPlayerId, pos, moveValue);
             }
         });
@@ -88,7 +87,6 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
         }
     }, [currentPlayerId, players, waitingForMove, consecutiveSpecialRolls, winner]);
 
-    // Helper to get target index without side effects
     const calculateTarget = (pIdx, currentPos, steps) => {
         if (currentPos === START_POSITION) return PATHS[pIdx][0];
         const path = PATHS[pIdx];
@@ -102,13 +100,8 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
         setValidMoves({});
         setBoardShake(false);
 
-        // Logic: If special roll, keep turn (unless forfeited, handled above)
-        // But if we are here via "No valid moves", checking special roll is tricky on "loss of turn".
-        // Standard rule: If you roll 4/8, you get another turn. Even if you couldn't move the 4/8?
-        // Let's say yes, you roll again.
         if (lastRollValue === 4 || lastRollValue === 8) {
             log("Roll again!");
-            // Don't switch
         } else {
             setConsecutiveSpecialRolls(0);
             setCurrentTurnIndex((prev) => (prev + 1) % activePlayerIds.length);
@@ -129,20 +122,14 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
 
         const targetBoardIndex = path[targetPathIndex];
 
-        // Inner Circle Constraint
         if (currentPathIndex <= 15 && targetPathIndex > 15 && !player.hasKilled) {
             return false;
         }
 
-        const isSafe = SAFE_ZONES.includes(targetBoardIndex);
-        if (isSafe) return true; // Safe zones always open
-
-        // Capture logic? Always allowed to capture if opponents present.
-        // Self-block? Typically allowed.
         return true;
     };
 
-    const movePawn = (pawnIndex) => {
+    const movePawn = useCallback((pawnIndex) => {
         if (!waitingForMove || !diceValue) return;
         if (!canMove(currentPlayerId, pawnIndex, diceValue)) {
             log("Invalid move!");
@@ -150,7 +137,7 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
         }
 
         let extraTurnFromKill = false;
-        const newPlayers = [...players];
+        const newPlayers = JSON.parse(JSON.stringify(players));
         const player = newPlayers[currentPlayerId];
         const currentPos = player.pawns[pawnIndex];
         let targetBoardIndex;
@@ -163,16 +150,15 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
             targetBoardIndex = path[currentPathIdx + diceValue];
         }
 
-        // Capture Check
         if (!SAFE_ZONES.includes(targetBoardIndex)) {
             newPlayers.forEach((p, pIdx) => {
-                if (pIdx !== currentPlayerId && activePlayerIds.includes(pIdx)) { // Only capture active players?
+                if (pIdx !== currentPlayerId && activePlayerIds.includes(pIdx)) {
                     p.pawns.forEach((pos, idx) => {
                         if (pos === targetBoardIndex) {
                             p.pawns[idx] = START_POSITION;
                             player.hasKilled = true;
                             extraTurnFromKill = true;
-                            setBoardShake(true); // SHAKE ON KILL!
+                            setBoardShake(true);
                             log(`Captured ${p.name}'s pawn! Extra Turn!`);
                         }
                     });
@@ -183,7 +169,7 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
         player.pawns[pawnIndex] = targetBoardIndex;
         setPlayers(newPlayers);
         setWaitingForMove(false);
-        setValidMoves({}); // Clear highlights
+        setValidMoves({});
         soundManager.playMove();
 
         if (targetBoardIndex === HOME_POSITION) {
@@ -197,25 +183,85 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3]) {
         }
 
         const isSpecial = diceValue === 4 || diceValue === 8;
-        if (isSpecial) setBoardShake(true); // Shake on special
+        if (isSpecial) setBoardShake(true);
 
         if (isSpecial || extraTurnFromKill) {
             setDiceValue(null);
-            // Don't clear shake immediately to allow anim
             setTimeout(() => setBoardShake(false), 500);
         } else {
             endTurn(0);
         }
-    };
+    }, [waitingForMove, diceValue, currentPlayerId, players, activePlayerIds]);
+
+    // AI LOGIC AUTO-PLAYER
+    useEffect(() => {
+        if (winner) return;
+        if (!aiPlayerIds.includes(currentPlayerId)) return;
+
+        if (!diceValue && !waitingForMove) {
+            // AI ROLLED
+            const timer = setTimeout(rollDice, 1500);
+            return () => clearTimeout(timer);
+        }
+
+        if (waitingForMove && diceValue) {
+            // AI MOVING
+            const timer = setTimeout(() => {
+                const moves = Object.keys(validMoves).map(Number);
+                if (moves.length === 0) return;
+
+                // Priority Logic:
+                // 1. Kill
+                // 2. Go to HOME
+                // 3. Move pawn already on board (nearest to home)
+                // 4. Move from START
+
+                let chosenPawn = moves[0];
+
+                // Check for kills
+                const killMove = moves.find(idx => {
+                    const target = validMoves[idx];
+                    if (SAFE_ZONES.includes(target)) return false;
+                    return players.some((p, pIdx) =>
+                        pIdx !== currentPlayerId &&
+                        activePlayerIds.includes(pIdx) &&
+                        p.pawns.some(pos => pos === target)
+                    );
+                });
+                if (killMove !== undefined) chosenPawn = killMove;
+                else {
+                    // Check for home
+                    const homeMove = moves.find(idx => validMoves[idx] === HOME_POSITION);
+                    if (homeMove !== undefined) chosenPawn = homeMove;
+                    else {
+                        // Move furthest along path
+                        const path = PATHS[currentPlayerId];
+                        let maxPathIdx = -1;
+                        moves.forEach(idx => {
+                            const pos = players[currentPlayerId].pawns[idx];
+                            const pIdx = path.indexOf(pos);
+                            if (pIdx > maxPathIdx) {
+                                maxPathIdx = pIdx;
+                                chosenPawn = idx;
+                            }
+                        });
+                    }
+                }
+
+                movePawn(chosenPawn);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [currentPlayerId, diceValue, waitingForMove, aiPlayerIds, validMoves, winner, rollDice, movePawn, players, activePlayerIds]);
 
     return {
         players,
         currentPlayer: players[currentPlayerId],
-        currentPlayerIndex: currentPlayerId, // Return actual ID
+        currentPlayerIndex: currentPlayerId,
         diceValue,
         rawDiceState,
-        validMoves, // Export this
-        boardShake, // Export this
+        validMoves,
+        boardShake,
         rollDice,
         movePawn,
         gameLog,

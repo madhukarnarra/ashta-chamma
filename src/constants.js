@@ -5,7 +5,7 @@
 // 15 16 17 18 19
 // 20 21 22 23 24
 
-export const SAFE_ZONES = [2, 10, 12, 14, 22]; // Marked with 'X' in traditional boards usually mid-sides + center
+export const SAFE_ZONES = [2, 10, 12, 14, 22, 6, 8, 16, 18]; // Mid-sides, corners, and center
 // Note: User description said "middle square of each of the four outer sides" + center.
 // Top: 2, Left: 10, Right: 14, Bottom: 22, Center: 12.
 

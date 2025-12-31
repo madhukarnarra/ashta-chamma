@@ -20,42 +20,57 @@ const GameBoard = ({ players, currentPlayerIndex, waitingForMove, movePawn, vali
 
     return (
         <motion.div
-            className="board-container chalk-box"
+            className="board-container chalk-board"
             animate={boardShake ? { x: [-3, 3, -3, 3, 0], transition: { duration: 0.3 } } : {}}
             style={{
                 position: 'relative', width: '100%', height: '100%',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(5, 1fr)',
                 gridTemplateRows: 'repeat(5, 1fr)',
-                gap: '0', padding: '1.5%', overflow: 'hidden'
+                gap: '0', padding: '10px', overflow: 'hidden'
             }}
         >
-            {/* Direction Lines - Royal Blue for high contrast but pleasing look on cream */}
-            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.4, zIndex: 0 }}>
+            {/* Hand-Drawn Grid Lines */}
+            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 2 }}>
+                <g filter="url(#chalk-filter)" stroke="rgba(255,255,255,0.4)" strokeWidth="2">
+                    {[1, 2, 3, 4].map(i => (
+                        <line key={`v${i}`} x1={`${i * 20}%`} y1="0" x2={`${i * 20}%`} y2="100%" />
+                    ))}
+                    {[1, 2, 3, 4].map(i => (
+                        <line key={`h${i}`} x1="0" y1={`${i * 20}%`} x2="100%" y2={`${i * 20}%`} />
+                    ))}
+                </g>
+            </svg>
+
+            {/* Direction Marks - Color coded for each player */}
+            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 5 }}>
                 <defs>
-                    <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                        <path d="M0,0 L6,3 L0,6 L0,0" fill="#2c3e50" />
+                    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                        <path d="M0,2 L6,5 L0,8 Z" fill="var(--pawn-red)" />
+                    </marker>
+                    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                        <path d="M0,2 L6,5 L0,8 Z" fill="var(--pawn-green)" />
+                    </marker>
+                    <marker id="arrow-yellow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                        <path d="M0,2 L6,5 L0,8 Z" fill="var(--pawn-yellow)" />
+                    </marker>
+                    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                        <path d="M0,2 L6,5 L0,8 Z" fill="var(--pawn-blue)" />
                     </marker>
                 </defs>
 
-                <g stroke="#2c3e50" strokeWidth="1.5" strokeDasharray="3,3" markerEnd="url(#arrow)">
-                    {/* Outer Ring */}
-                    <line x1="90%" y1="10%" x2="10%" y2="10%" />
-                    <line x1="10%" y1="10%" x2="10%" y2="90%" />
-                    <line x1="10%" y1="90%" x2="90%" y2="90%" />
-                    <line x1="90%" y1="90%" x2="90%" y2="10%" />
+                <g filter="url(#chalk-filter)">
+                    {/* Start Direction Arrows */}
+                    <path d="M 50% 92% L 65% 92%" stroke="var(--pawn-red)" strokeWidth="3" markerEnd="url(#arrow-red)" opacity="0.8" />
+                    <path d="M 92% 50% L 92% 35%" stroke="var(--pawn-green)" strokeWidth="3" markerEnd="url(#arrow-green)" opacity="0.8" />
+                    <path d="M 50% 8% L 35% 8%" stroke="var(--pawn-yellow)" strokeWidth="3" markerEnd="url(#arrow-yellow)" opacity="0.8" />
+                    <path d="M 8% 50% L 8% 65%" stroke="var(--pawn-blue)" strokeWidth="3" markerEnd="url(#arrow-blue)" opacity="0.8" />
 
-                    {/* Inner Ring */}
-                    <line x1="30%" y1="30%" x2="70%" y2="30%" strokeDasharray="2,4" />
-                    <line x1="70%" y1="30%" x2="70%" y2="70%" strokeDasharray="2,4" />
-                    <line x1="70%" y1="70%" x2="30%" y2="70%" strokeDasharray="2,4" />
-                    <line x1="30%" y1="70%" x2="30%" y2="30%" strokeDasharray="2,4" />
-
-                    {/* Entry Arrows */}
-                    <line x1="50%" y1="30%" x2="50%" y2="45%" strokeWidth="1" strokeDasharray="0" />
-                    <line x1="30%" y1="50%" x2="45%" y2="50%" strokeWidth="1" strokeDasharray="0" />
-                    <line x1="70%" y1="50%" x2="55%" y2="50%" strokeWidth="1" strokeDasharray="0" />
-                    <line x1="50%" y1="70%" x2="50%" y2="55%" strokeWidth="1" strokeDasharray="0" />
+                    {/* Inner Entry Arrows */}
+                    <path d="M 30% 85% L 30% 75%" stroke="var(--pawn-red)" strokeWidth="2" markerEnd="url(#arrow-red)" opacity="0.5" strokeDasharray="3,3" />
+                    <path d="M 85% 70% L 75% 70%" stroke="var(--pawn-green)" strokeWidth="2" markerEnd="url(#arrow-green)" opacity="0.5" strokeDasharray="3,3" />
+                    <path d="M 70% 15% L 70% 25%" stroke="var(--pawn-yellow)" strokeWidth="2" markerEnd="url(#arrow-yellow)" opacity="0.5" strokeDasharray="3,3" />
+                    <path d="M 15% 30% L 25% 30%" stroke="var(--pawn-blue)" strokeWidth="2" markerEnd="url(#arrow-blue)" opacity="0.5" strokeDasharray="3,3" />
                 </g>
             </svg>
 
@@ -64,47 +79,54 @@ const GameBoard = ({ players, currentPlayerIndex, waitingForMove, movePawn, vali
                 const isSafe = SAFE_ZONES.includes(i);
                 const isValidTarget = validTargetSet.has(i);
 
-                // Checkerboard Logic
-                const isOdd = i % 2 !== 0;
-                const cellBg = isOdd ? 'var(--cell-bg-1)' : 'var(--cell-bg-2)';
-
-                // Center is Home (White/Gold?)
-                const finalBg = (i === 12) ? '#fff8e1' : (isSafe ? 'var(--safe-zone-bg)' : cellBg);
-
                 return (
                     <div
                         key={i}
                         className="cell"
                         style={{
-                            position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center',
-                            zIndex: 1, background: finalBg,
+                            zIndex: 1,
+                            background: isSafe ? 'var(--safe-zone-bg)' : 'transparent',
                         }}
                     >
-                        {/* Highlight for Valid Moves - Gold Glow */}
+                        {/* HOME Label */}
+                        {i === 12 && (
+                            <div style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                opacity: 0.6, userSelect: 'none', pointerEvents: 'none',
+                                filter: 'url(#chalk-filter)',
+                                transform: 'scale(1.1)'
+                            }}>
+                                <span style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--chalk-white)' }}>ఇల్లు</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--chalk-white)', letterSpacing: '3px' }}>HOME</span>
+                            </div>
+                        )}
+
+                        {/* Highlight for Valid Moves - Chalk Glow */}
                         {isValidTarget && (
                             <motion.div
-                                animate={{ opacity: [0.3, 0.7, 0.3], scale: [0.9, 1, 0.9] }}
-                                transition={{ repeat: Infinity, duration: 1.2 }}
+                                animate={{ opacity: [0.2, 0.5, 0.2], scale: [0.95, 1, 0.95] }}
+                                transition={{ repeat: Infinity, duration: 1.5 }}
                                 style={{
-                                    position: 'absolute', top: 3, left: 3, right: 3, bottom: 3,
-                                    border: '2px dashed #d4af37',
-                                    backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                                    borderRadius: '50%', // Circle highlight looks nicer
+                                    position: 'absolute', top: 5, left: 5, right: 5, bottom: 5,
+                                    border: '2px solid rgba(255,255,255,0.3)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    borderRadius: '50%',
+                                    filter: 'url(#chalk-filter)',
                                     zIndex: 0
                                 }}
                             />
                         )}
 
-                        {/* Safe Zone Mark - Classy Flower Pattern */}
-                        {isSafe && (
+                        {/* Safe Zone Mark - Simple Chalk X */}
+                        {isSafe && i !== 12 && (
                             <div style={{
-                                position: 'absolute', top: '10%', left: '10%', width: '80%', height: '80%',
-                                pointerEvents: 'none', opacity: 0.15,
+                                position: 'absolute', top: '15%', left: '15%', width: '70%', height: '70%',
+                                pointerEvents: 'none', opacity: 0.3,
+                                filter: 'url(#chalk-filter)'
                             }}>
                                 <svg width="100%" height="100%" viewBox="0 0 100 100">
-                                    <circle cx="50" cy="50" r="40" stroke="black" strokeWidth="5" fill="none" />
-                                    <line x1="10" y1="10" x2="90" y2="90" stroke="black" strokeWidth="5" />
-                                    <line x1="90" y1="10" x2="10" y2="90" stroke="black" strokeWidth="5" />
+                                    <line x1="10" y1="10" x2="90" y2="90" stroke="white" strokeWidth="4" />
+                                    <line x1="90" y1="10" x2="10" y2="90" stroke="white" strokeWidth="4" />
                                 </svg>
                             </div>
                         )}

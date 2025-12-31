@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import PawnIcon from './PawnIcon';
 
 const Pawn = ({ playerIdx, onClick, isCurrentTurn, index, countInCell }) => {
+    // Better distribution for smaller pawns
+    // If multiple pawns, arrange them in a small grid within the cell
     const offset = countInCell > 1 ? {
-        x: (index % 2) * 14 - 7, // Wider spread
-        y: Math.floor(index / 2) * 14 - 7
+        x: (index % 2) * 20 - 10,
+        y: Math.floor(index / 2) * 20 - 10
     } : { x: 0, y: 0 };
 
     return (
@@ -17,14 +19,14 @@ const Pawn = ({ playerIdx, onClick, isCurrentTurn, index, countInCell }) => {
             animate={{
                 x: offset.x,
                 y: offset.y,
-                scale: isCurrentTurn ? 1.3 : 1
+                scale: isCurrentTurn ? 1.2 : 1
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
             style={{
-                width: '75%', // Slightly larger for better detail visibility
-                height: '75%',
+                width: '45%', // Smaller size as requested
+                height: '45%',
                 position: 'absolute',
-                zIndex: 10 + index,
+                zIndex: (isCurrentTurn ? 100 : 10) + index,
                 cursor: isCurrentTurn ? 'pointer' : 'default',
             }}
         >
@@ -32,13 +34,14 @@ const Pawn = ({ playerIdx, onClick, isCurrentTurn, index, countInCell }) => {
 
             {isCurrentTurn && (
                 <motion.div
-                    animate={{ opacity: [0, 1, 0], scale: [1, 1.2, 1] }}
-                    transition={{ repeat: Infinity, duration: 1 }}
+                    animate={{ opacity: [0, 0.6, 0], scale: [1, 1.4, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
                     style={{
-                        position: 'absolute', top: -5, left: -5, right: -5, bottom: -5,
-                        border: '3px solid white',
+                        position: 'absolute', top: -4, left: -4, right: -4, bottom: -4,
+                        border: '2px solid white',
                         borderRadius: '50%',
-                        pointerEvents: 'none'
+                        pointerEvents: 'none',
+                        filter: 'url(#chalk-filter)'
                     }}
                 />
             )}
