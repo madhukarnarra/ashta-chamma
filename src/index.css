@@ -1,17 +1,20 @@
 :root {
-  /* "Chalk on Rock" Theme */
-  --rock-bg: #2c2929;
-  /* Dark Volcanic Rock */
-  --chalk-white: rgba(255, 255, 255, 0.85);
-  --chalk-smudge: rgba(255, 255, 255, 0.15);
-  --safe-zone-bg: rgba(255, 255, 255, 0.05);
+  /* Solid Dark Gray Theme */
+  --bg-dark: #222222;
+  --chalk-light: rgba(240, 240, 240, 0.9);
+  --chalk-smudge: rgba(255, 255, 255, 0.05);
+  --safe-zone-bg: rgba(144, 238, 144, 0.1);
+  /* Soft Mint Green */
+  --home-bg: rgba(255, 215, 0, 0.08);
+  /* Subtle Gold */
+  --title-yellow: #f4c430;
 
-  --pawn-red: #ff5555;
-  --pawn-green: #55ff55;
-  --pawn-yellow: #ffff55;
-  --pawn-blue: #5555ff;
+  --pawn-red: #ff5e5e;
+  --pawn-green: #63ff63;
+  --pawn-yellow: #fdfd5c;
+  --pawn-blue: #6161ff;
 
-  --font-rural: 'Courier New', Courier, monospace;
+  --font-rural: 'Outfit', 'Inter', 'Courier New', Courier, monospace;
 }
 
 * {
@@ -27,9 +30,9 @@ html {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #1a1717;
+  background-color: var(--bg-dark);
   font-family: var(--font-rural);
-  color: var(--chalk-white);
+  color: var(--chalk-light);
 }
 
 #root {
@@ -39,13 +42,11 @@ html {
   flex-direction: column;
 }
 
-/* Procedural Rock Texture */
+/* Solid Dark Gray Background */
 .rock-surface {
-  background-color: #1a1717;
+  background-color: var(--bg-dark);
   background-image:
-    radial-gradient(circle at 50% 50%, rgba(44, 41, 41, 0.8) 0%, rgba(26, 23, 23, 1) 100%),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
   filter: url(#sharpen-filter);
 }
 

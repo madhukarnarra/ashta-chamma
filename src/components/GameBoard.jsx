@@ -42,7 +42,23 @@ const GameBoard = ({ players, currentPlayerIndex, waitingForMove, movePawn, vali
                 </g>
             </svg>
 
-            {/* Direction Marks - Color coded for each player */}
+            {/* Direction Marks - Guide for Pawn Movement */}
+            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 3 }}>
+                <defs>
+                    <marker id="path-arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="rgba(255,255,255,0.15)" />
+                    </marker>
+                </defs>
+
+                <g stroke="rgba(255,255,255,0.08)" strokeWidth="2" markerEnd="url(#path-arrow)" fill="none">
+                    {/* Outer Ring Clockwise Path Guides */}
+                    <path d="M 50% 90% L 10% 90% L 10% 10% L 90% 10% L 90% 90% L 55% 90%" />
+                    {/* Inner Ring Spiral Path Guides */}
+                    <path d="M 30% 70% L 30% 30% L 70% 30% L 70% 70% L 50% 70% L 50% 55%" />
+                </g>
+            </svg>
+
+            {/* Entry Marks - Color coded to pawn colors */}
             <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 5 }}>
                 <defs>
                     <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
@@ -60,17 +76,11 @@ const GameBoard = ({ players, currentPlayerIndex, waitingForMove, movePawn, vali
                 </defs>
 
                 <g filter="url(#chalk-filter)">
-                    {/* Start Direction Arrows */}
-                    <path d="M 50% 92% L 65% 92%" stroke="var(--pawn-red)" strokeWidth="3" markerEnd="url(#arrow-red)" opacity="0.8" />
-                    <path d="M 92% 50% L 92% 35%" stroke="var(--pawn-green)" strokeWidth="3" markerEnd="url(#arrow-green)" opacity="0.8" />
-                    <path d="M 50% 8% L 35% 8%" stroke="var(--pawn-yellow)" strokeWidth="3" markerEnd="url(#arrow-yellow)" opacity="0.8" />
-                    <path d="M 8% 50% L 8% 65%" stroke="var(--pawn-blue)" strokeWidth="3" markerEnd="url(#arrow-blue)" opacity="0.8" />
-
-                    {/* Inner Entry Arrows */}
-                    <path d="M 30% 85% L 30% 75%" stroke="var(--pawn-red)" strokeWidth="2" markerEnd="url(#arrow-red)" opacity="0.5" strokeDasharray="3,3" />
-                    <path d="M 85% 70% L 75% 70%" stroke="var(--pawn-green)" strokeWidth="2" markerEnd="url(#arrow-green)" opacity="0.5" strokeDasharray="3,3" />
-                    <path d="M 70% 15% L 70% 25%" stroke="var(--pawn-yellow)" strokeWidth="2" markerEnd="url(#arrow-yellow)" opacity="0.5" strokeDasharray="3,3" />
-                    <path d="M 15% 30% L 25% 30%" stroke="var(--pawn-blue)" strokeWidth="2" markerEnd="url(#arrow-blue)" opacity="0.5" strokeDasharray="3,3" />
+                    {/* Start Entry Directions */}
+                    <path d="M 50% 95% L 65% 95%" stroke="var(--pawn-red)" strokeWidth="3" markerEnd="url(#arrow-red)" />
+                    <path d="M 95% 50% L 95% 35%" stroke="var(--pawn-green)" strokeWidth="3" markerEnd="url(#arrow-green)" />
+                    <path d="M 50% 5% L 35% 5%" stroke="var(--pawn-yellow)" strokeWidth="3" markerEnd="url(#arrow-yellow)" />
+                    <path d="M 5% 50% L 5% 65%" stroke="var(--pawn-blue)" strokeWidth="3" markerEnd="url(#arrow-blue)" />
                 </g>
             </svg>
 
@@ -85,49 +95,36 @@ const GameBoard = ({ players, currentPlayerIndex, waitingForMove, movePawn, vali
                         className="cell"
                         style={{
                             zIndex: 1,
-                            background: isSafe ? 'var(--safe-zone-bg)' : 'transparent',
+                            background: i === 12 ? 'var(--home-bg)' : (isSafe ? 'var(--safe-zone-bg)' : 'transparent'),
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            position: 'relative',
+                            overflow: 'hidden'
                         }}
                     >
-                        {/* HOME Label */}
-                        {i === 12 && (
+                        {/* Safe Zone Mark - Centered Green X */}
+                        {isSafe && i !== 12 && (
                             <div style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                opacity: 0.6, userSelect: 'none', pointerEvents: 'none',
-                                filter: 'url(#chalk-filter)',
-                                transform: 'scale(1.1)'
+                                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                                pointerEvents: 'none', opacity: 0.5,
                             }}>
-                                <span style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--chalk-white)' }}>ఇల్లు</span>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--chalk-white)', letterSpacing: '3px' }}>HOME</span>
+                                <svg width="80%" height="80%" viewBox="0 0 100 100">
+                                    <line x1="10" y1="10" x2="90" y2="90" stroke="#27ae60" strokeWidth="4" />
+                                    <line x1="90" y1="10" x2="10" y2="90" stroke="#27ae60" strokeWidth="4" />
+                                </svg>
                             </div>
                         )}
 
-                        {/* Highlight for Valid Moves - Chalk Glow */}
-                        {isValidTarget && (
-                            <motion.div
-                                animate={{ opacity: [0.2, 0.5, 0.2], scale: [0.95, 1, 0.95] }}
-                                transition={{ repeat: Infinity, duration: 1.5 }}
-                                style={{
-                                    position: 'absolute', top: 5, left: 5, right: 5, bottom: 5,
-                                    border: '2px solid rgba(255,255,255,0.3)',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                    borderRadius: '50%',
-                                    filter: 'url(#chalk-filter)',
-                                    zIndex: 0
-                                }}
-                            />
-                        )}
-
-                        {/* Safe Zone Mark - Simple Chalk X */}
-                        {isSafe && i !== 12 && (
+                        {/* HOME Label */}
+                        {i === 12 && (
                             <div style={{
-                                position: 'absolute', top: '15%', left: '15%', width: '70%', height: '70%',
-                                pointerEvents: 'none', opacity: 0.3,
-                                filter: 'url(#chalk-filter)'
+                                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                opacity: 0.8, userSelect: 'none', pointerEvents: 'none',
+                                transform: 'scale(1.2)', zIndex: 0
                             }}>
-                                <svg width="100%" height="100%" viewBox="0 0 100 100">
-                                    <line x1="10" y1="10" x2="90" y2="90" stroke="white" strokeWidth="4" />
-                                    <line x1="90" y1="10" x2="10" y2="90" stroke="white" strokeWidth="4" />
-                                </svg>
+                                <span style={{ fontSize: '1.5rem', fontWeight: '900', color: '#dbcc24' }}>ఇల్లు</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#dbcc24', letterSpacing: '3px' }}>HOME</span>
                             </div>
                         )}
 

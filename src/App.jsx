@@ -12,7 +12,7 @@ function GameRunner({ playerCount, isVsAI, onBack, onShowRules }) {
 
   const {
     players, currentPlayerIndex, diceValue, rawDiceState, rollDice,
-    movePawn, gameLog, winner, waitingForMove, validMoves, boardShake
+    movePawn, gameLog, winner, rankings, waitingForMove, validMoves, boardShake
   } = useGameState(activeIds, aiIds);
 
   const [isMuted, setIsMuted] = useState(false);
@@ -70,25 +70,35 @@ function GameRunner({ playerCount, isVsAI, onBack, onShowRules }) {
         {/* HUDs */}
         {activeIds.includes(3) && (
           <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 20 }}>
-            <PlayerPanel player={players[3]} playerIdx={3} isActive={currentPlayerIndex === 3} movePawn={movePawn} waitingForMove={waitingForMove} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {rankings.includes(3) && <div style={{ background: '#dbcc24', color: '#000', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '4px' }}>RANK {rankings.indexOf(3) + 1}</div>}
+              <PlayerPanel player={players[3]} playerIdx={3} isActive={currentPlayerIndex === 3} movePawn={movePawn} waitingForMove={waitingForMove} />
+            </div>
           </div>
         )}
         {activeIds.includes(2) && (
           <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 20 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {isVsAI && <span style={{ fontSize: '0.6rem', opacity: 0.6, color: '#ffff55' }}>SYSTEM AI</span>}
+              {rankings.includes(2) && <div style={{ background: '#dbcc24', color: '#000', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '4px' }}>RANK {rankings.indexOf(2) + 1}</div>}
               <PlayerPanel player={players[2]} playerIdx={2} isActive={currentPlayerIndex === 2} movePawn={movePawn} waitingForMove={waitingForMove} />
             </div>
           </div>
         )}
         {activeIds.includes(0) && (
           <div style={{ position: 'absolute', bottom: '100px', left: '10px', zIndex: 20 }}>
-            <PlayerPanel player={players[0]} playerIdx={0} isActive={currentPlayerIndex === 0} movePawn={movePawn} waitingForMove={waitingForMove} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {rankings.includes(0) && <div style={{ background: '#dbcc24', color: '#000', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '4px' }}>RANK {rankings.indexOf(0) + 1}</div>}
+              <PlayerPanel player={players[0]} playerIdx={0} isActive={currentPlayerIndex === 0} movePawn={movePawn} waitingForMove={waitingForMove} />
+            </div>
           </div>
         )}
         {activeIds.includes(1) && (
           <div style={{ position: 'absolute', bottom: '100px', right: '10px', zIndex: 20 }}>
-            <PlayerPanel player={players[1]} playerIdx={1} isActive={currentPlayerIndex === 1} movePawn={movePawn} waitingForMove={waitingForMove} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {rankings.includes(1) && <div style={{ background: '#dbcc24', color: '#000', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '4px' }}>RANK {rankings.indexOf(1) + 1}</div>}
+              <PlayerPanel player={players[1]} playerIdx={1} isActive={currentPlayerIndex === 1} movePawn={movePawn} waitingForMove={waitingForMove} />
+            </div>
           </div>
         )}
 
@@ -117,18 +127,32 @@ function GameRunner({ playerCount, isVsAI, onBack, onShowRules }) {
 
       </div>
 
-      {winner && (
+      {(rankings.length >= activeIds.length - 1 && activeIds.length > 1) && (
         <div className="winner-overlay" style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.95)', zIndex: 200,
+          background: 'rgba(0,0,0,0.9)', zIndex: 200,
           display: 'flex', flexDirection: 'column',
           justifyContent: 'center', alignItems: 'center',
-          backdropFilter: 'blur(10px)'
+          backdropFilter: 'blur(15px)'
         }}>
-          <h1 style={{ fontSize: '3rem', color: winner.color, textAlign: 'center' }}>
-            {isVsAI && winner.id === 2 ? "SYSTEM WINS!" : `${winner.name.toUpperCase()} WINS!`}
-          </h1>
-          <button onClick={onBack} style={{ fontSize: '1.2rem', marginTop: '40px', padding: '12px 40px' }}>Play Again</button>
+          <h1 style={{ fontSize: '3.5rem', color: 'var(--title-yellow)', textAlign: 'center', marginBottom: '2rem' }}>LEADERBOARD</h1>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '300px' }}>
+            {rankings.map((pid, idx) => (
+              <div key={pid} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                background: idx === 0 ? 'rgba(219, 204, 36, 0.2)' : 'rgba(255,255,255,0.05)',
+                padding: '1rem 1.5rem', borderRadius: '12px',
+                border: idx === 0 ? '1px solid #dbcc24' : '1px solid rgba(255,255,255,0.1)'
+              }}>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{idx + 1}<sup>{idx === 0 ? 'st' : idx === 1 ? 'nd' : 'rd'}</sup></span>
+                <span style={{ fontSize: '1.2rem', color: players[pid].color, fontWeight: 'bold' }}>{players[pid].name}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={onBack} style={{
+            fontSize: '1.2rem', marginTop: '3rem', padding: '15px 50px',
+            backgroundColor: 'var(--title-yellow)', color: '#000', border: 'none', borderRadius: '12px', fontWeight: 'bold'
+          }}>New Game</button>
         </div>
       )}
     </div>
@@ -165,25 +189,31 @@ function App() {
           height: '100%', justifyContent: 'center', alignItems: 'center'
         }}>
           <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-            <h1 style={{ fontSize: 'min(12vw, 4rem)', margin: 0, color: '#f4c430' }}>అష్టా చమ్మా</h1>
+            <h1 style={{
+              fontSize: 'min(14vw, 5rem)', margin: 0,
+              color: 'var(--title-yellow)',
+              textShadow: '0 2px 10px rgba(0,0,0,0.1)'
+            }}>
+              అష్టా చమ్మా
+            </h1>
             <h2 style={{ fontSize: 'min(5vw, 1.2rem)', margin: 0, color: '#a0a0a0', letterSpacing: '4px' }}>Ashta Chamma</h2>
           </div>
 
-          <button onClick={() => startLevel(2, true)} style={{ fontSize: '1.1rem', padding: '1rem', width: '280px' }}>
+          <button onClick={() => startLevel(2, true)} style={{ fontSize: '1.2rem', padding: '1.2rem', width: '300px', backgroundColor: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', borderRadius: '12px' }}>
             1 Player (vs System)
           </button>
-          <button onClick={() => startLevel(2, false)} style={{ fontSize: '1.1rem', padding: '1rem', width: '280px' }}>
+          <button onClick={() => startLevel(2, false)} style={{ fontSize: '1.2rem', padding: '1.2rem', width: '300px', backgroundColor: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', borderRadius: '12px' }}>
             2 Players
           </button>
-          <button onClick={() => startLevel(4, false)} style={{ fontSize: '1.1rem', padding: '1rem', width: '280px' }}>
+          <button onClick={() => startLevel(4, false)} style={{ fontSize: '1.2rem', padding: '1.2rem', width: '300px', backgroundColor: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 15px rgba(0,0,0,0.3)', borderRadius: '12px' }}>
             4 Players
           </button>
 
           <button
             onClick={() => setShowRules(true)}
             style={{
-              fontSize: '0.9rem', padding: '0.6rem', width: '200px',
-              background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#ccc'
+              fontSize: '1rem', padding: '0.8rem', width: '220px',
+              background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: '#aaa', borderRadius: '10px'
             }}
           >
             How To Play

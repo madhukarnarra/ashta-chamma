@@ -26,18 +26,15 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
     const [boardShake, setBoardShake] = useState(false);
 
     const [consecutiveSpecialRolls, setConsecutiveSpecialRolls] = useState(0);
+    const [rankings, setRankings] = useState([]); // Array of player IDs in finish order
     const [gameLog, setGameLog] = useState(['Welcome! Roll cowries to begin.']);
-    const [winner, setWinner] = useState(null);
 
     const log = (msg) => setGameLog(prev => [msg, ...prev].slice(0, 5));
 
-    // BIASED ROLL: Increase probability of ASHTA (8)
-    // 0 up = 8. If we lower the probability of being face up, 0 up becomes more likely.
     const rollDice = useCallback(() => {
-        if (winner || waitingForMove) return;
+        if (rankings.length >= activePlayerIds.length - 1 && activePlayerIds.length > 1) return;
+        if (waitingForMove) return;
 
-        // BIAS: 35% chance to be UP, 65% chance to be DOWN.
-        // p(8) = 0.65^4 = ~18% (3x increase from baseline 6.25%)
         const rolls = Array(4).fill(0).map(() => Math.random() < 0.35);
         const faceUpCount = rolls.filter(Boolean).length;
         const moveValue = ROLL_VALUES[faceUpCount];
@@ -85,13 +82,25 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
             log("No valid moves. Skipping turn...");
             setTimeout(() => endTurn(moveValue), 1500);
         }
-    }, [currentPlayerId, players, waitingForMove, consecutiveSpecialRolls, winner]);
+    }, [currentPlayerId, players, waitingForMove, consecutiveSpecialRolls, rankings, activePlayerIds]);
 
     const calculateTarget = (pIdx, currentPos, steps) => {
         if (currentPos === START_POSITION) return PATHS[pIdx][0];
         const path = PATHS[pIdx];
         const currentPathIdx = path.indexOf(currentPos);
         return path[currentPathIdx + steps];
+    };
+
+    const nextUnfinishedTurn = (currentIndex) => {
+        let next = (currentIndex + 1) % activePlayerIds.length;
+        for (let i = 0; i < activePlayerIds.length; i++) {
+            const nextId = activePlayerIds[next];
+            if (!rankings.includes(nextId)) {
+                return next;
+            }
+            next = (next + 1) % activePlayerIds.length;
+        }
+        return next;
     };
 
     const endTurn = (lastRollValue) => {
@@ -104,13 +113,16 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
             log("Roll again!");
         } else {
             setConsecutiveSpecialRolls(0);
-            setCurrentTurnIndex((prev) => (prev + 1) % activePlayerIds.length);
+            setCurrentTurnIndex((prev) => nextUnfinishedTurn(prev));
         }
     };
 
     const canMove = (playerIdx, pawnIdx, steps) => {
         const player = players[playerIdx];
+        if (rankings.includes(playerIdx)) return false;
+
         const currentPosIsIndex = player.pawns[pawnIdx];
+        if (currentPosIsIndex === HOME_POSITION) return false;
         if (currentPosIsIndex === START_POSITION) return steps === 4 || steps === 8;
 
         const path = PATHS[playerIdx];
@@ -172,53 +184,52 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
         setValidMoves({});
         soundManager.playMove();
 
+        const isSpecialByValue = diceValue === 4 || diceValue === 8;
+
         if (targetBoardIndex === HOME_POSITION) {
             const allHome = player.pawns.every(p => p === HOME_POSITION);
             if (allHome) {
-                setWinner(player);
+                const newRankings = [...rankings, currentPlayerId];
+                setRankings(newRankings);
                 soundManager.playWin();
-                log(`${player.name} WINS!`);
+                log(`${player.name} finished at Rank ${newRankings.length}!`);
+
+                if (newRankings.length >= activePlayerIds.length - 1 && activePlayerIds.length > 1) {
+                    log("Game Finished!");
+                } else {
+                    setCurrentTurnIndex((prev) => nextUnfinishedTurn(prev));
+                }
                 return;
             }
         }
 
-        const isSpecial = diceValue === 4 || diceValue === 8;
-        if (isSpecial) setBoardShake(true);
+        if (isSpecialByValue) setBoardShake(true);
 
-        if (isSpecial || extraTurnFromKill) {
+        if (isSpecialByValue || extraTurnFromKill) {
             setDiceValue(null);
             setTimeout(() => setBoardShake(false), 500);
         } else {
             endTurn(0);
         }
-    }, [waitingForMove, diceValue, currentPlayerId, players, activePlayerIds]);
+    }, [waitingForMove, diceValue, currentPlayerId, players, activePlayerIds, rankings]);
 
-    // AI LOGIC AUTO-PLAYER
     useEffect(() => {
-        if (winner) return;
+        if (rankings.length >= activePlayerIds.length - 1 && activePlayerIds.length > 1) return;
         if (!aiPlayerIds.includes(currentPlayerId)) return;
+        if (rankings.includes(currentPlayerId)) return;
 
         if (!diceValue && !waitingForMove) {
-            // AI ROLLED
             const timer = setTimeout(rollDice, 1500);
             return () => clearTimeout(timer);
         }
 
         if (waitingForMove && diceValue) {
-            // AI MOVING
             const timer = setTimeout(() => {
                 const moves = Object.keys(validMoves).map(Number);
                 if (moves.length === 0) return;
 
-                // Priority Logic:
-                // 1. Kill
-                // 2. Go to HOME
-                // 3. Move pawn already on board (nearest to home)
-                // 4. Move from START
-
                 let chosenPawn = moves[0];
 
-                // Check for kills
                 const killMove = moves.find(idx => {
                     const target = validMoves[idx];
                     if (SAFE_ZONES.includes(target)) return false;
@@ -230,11 +241,9 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
                 });
                 if (killMove !== undefined) chosenPawn = killMove;
                 else {
-                    // Check for home
                     const homeMove = moves.find(idx => validMoves[idx] === HOME_POSITION);
                     if (homeMove !== undefined) chosenPawn = homeMove;
                     else {
-                        // Move furthest along path
                         const path = PATHS[currentPlayerId];
                         let maxPathIdx = -1;
                         moves.forEach(idx => {
@@ -247,12 +256,13 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
                         });
                     }
                 }
-
                 movePawn(chosenPawn);
             }, 1000);
             return () => clearTimeout(timer);
         }
-    }, [currentPlayerId, diceValue, waitingForMove, aiPlayerIds, validMoves, winner, rollDice, movePawn, players, activePlayerIds]);
+    }, [currentPlayerId, diceValue, waitingForMove, aiPlayerIds, validMoves, rankings, rollDice, movePawn, players, activePlayerIds]);
+
+    const winner = rankings.length > 0 ? players[rankings[0]] : null;
 
     return {
         players,
@@ -266,6 +276,7 @@ export function useGameState(activePlayerIds = [0, 1, 2, 3], aiPlayerIds = []) {
         movePawn,
         gameLog,
         winner,
+        rankings,
         waitingForMove
     };
 }

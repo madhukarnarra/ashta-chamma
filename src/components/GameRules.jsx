@@ -213,14 +213,20 @@ const GameRules = ({ isOpen, onClose }) => {
                                     fontSize: '1.25rem'
                                 }}>3</div>
                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fde047', margin: 0 }}>విజయం</h3>
-                                    <span style={{ color: '#a8a29e', fontSize: '0.75rem' }}>Victory</span>
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fde047', margin: 0 }}>విజయం & ర్యాంకింగ్</h3>
+                                    <span style={{ color: '#a8a29e', fontSize: '0.75rem' }}>Victory & Ranking</span>
                                 </div>
                             </div>
-                            <div style={{ paddingLeft: '56px' }}>
-                                <p style={{ fontSize: '1.125rem', lineHeight: '1.75', margin: 0 }}>అన్ని 4 కాయలను మధ్య గదిలోకి చేర్చాలి. మొదట చేర్చిన వారు విజేత!</p>
-                                <p style={{ color: '#d6d3d1', fontSize: '0.875rem', margin: '4px 0 0 0' }}>Navigate all 4 pawns to center square. First to get all 4 in wins!</p>
-                            </div>
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0, paddingLeft: '56px' }}>
+                                <li style={{ marginBottom: '12px' }}>
+                                    <p style={{ fontSize: '1.125rem', lineHeight: '1.75', margin: 0 }}>అన్ని 4 కాయలను మధ్య గదిలోకి చేర్చాలి. మొదట చేర్చిన వారు విజేత!</p>
+                                    <p style={{ color: '#d6d3d1', fontSize: '0.875rem', margin: '4px 0 0 0' }}>Navigate all 4 pawns to center square. First to get all 4 in wins!</p>
+                                </li>
+                                <li>
+                                    <p style={{ fontSize: '1.125rem', lineHeight: '1.75', margin: 0 }}>4 ప్లేయర్ల మోడ్‌లో, 2వ మరియు 3వ స్థానాల కోసం ఆట కొనసాగుతుంది.</p>
+                                    <p style={{ color: '#d6d3d1', fontSize: '0.875rem', margin: '4px 0 0 0' }}>In 4-player mode, the game continues to find 2nd and 3rd place rankings.</p>
+                                </li>
+                            </ul>
                         </section>
 
                     </div>
