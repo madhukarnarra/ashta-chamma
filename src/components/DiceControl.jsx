@@ -6,27 +6,17 @@ const CowrieShell = ({ isFaceUp }) => {
         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
             <svg viewBox="0 0 100 150" style={{ width: '100%', height: '100%' }}>
                 <defs>
-                    <radialGradient id="gilded-shell-grad" cx="40%" cy="40%" r="60%">
+                    <radialGradient id="obsidian-shell-grad" cx="40%" cy="40%" r="60%">
                         <stop offset="0%" stopColor="#fff" />
-                        <stop offset="70%" stopColor="#f5f5f5" />
-                        <stop offset="100%" stopColor="#B8860B" />
+                        <stop offset="60%" stopColor="#f0f0f0" />
+                        <stop offset="100%" stopColor="#888" />
                     </radialGradient>
                 </defs>
-
-                {/* Gilded Edge Shell */}
-                <ellipse cx="50" cy="75" rx="36" ry="61" fill="var(--liquid-gold)" opacity="0.2" />
-                <ellipse cx="50" cy="75" rx="34" ry="59" fill="url(#gilded-shell-grad)" />
-
-                {/* Shell Opening (Ventral Side) */}
+                <ellipse cx="50" cy="75" rx="35" ry="60" fill="url(#obsidian-shell-grad)" opacity="0.95" />
                 {!isFaceUp && (
-                    <g>
-                        <path d="M50,40 Q62,75 50,110 Q38,75 50,40" fill="#1a1a1a" />
-                        <path d="M50,45 Q58,75 50,105" stroke="rgba(255,215,0,0.3)" strokeWidth="0.5" fill="none" />
-                    </g>
+                    <path d="M50,40 Q62,75 50,110 Q38,75 50,40" fill="#111" />
                 )}
-
-                {/* High-Gloss Highlight */}
-                <ellipse cx="42" cy="55" rx="10" ry="20" fill="white" opacity="0.4" />
+                <ellipse cx="42" cy="55" rx="8" ry="18" fill="white" opacity="0.3" />
             </svg>
         </div>
     );
@@ -36,40 +26,43 @@ const DiceControl = ({ onRoll, disabled, diceValue, rawDiceState }) => {
     const displayState = rawDiceState || [false, false, false, false];
 
     return (
-        <div className="dice-control" style={{ textAlign: 'center', padding: '1rem', position: 'relative' }}>
-            {/* Free Floating Shells in Organic Cluster */}
+        <div className="dice-control" style={{
+            position: 'relative',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+        }}>
+            {/* Minimal Background for Dice */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 gap: '12px',
-                height: '100px',
-                marginBottom: '1rem',
+                height: '80px',
+                marginBottom: '10px',
             }}>
                 {displayState.map((isFaceUp, i) => (
                     <motion.div
                         key={i}
                         animate={disabled ? {
-                            rotate: isFaceUp ? 0 : [0, 180],
+                            rotate: isFaceUp ? 0 : 180,
                             scale: 1,
-                            y: 0,
-                            x: 0
+                            y: 0
                         } : {
                             rotate: [0, 90, 180, 270, 360],
-                            y: [0, -30, 0],
-                            x: [0, (i - 1.5) * 10, 0],
+                            y: [0, -25, 0],
                             scale: [1, 1.25, 1]
                         }}
                         transition={{
                             duration: 0.6,
                             delay: i * 0.05,
-                            ease: "backOut"
+                            ease: "easeInOut"
                         }}
                         style={{
-                            width: '45px',
-                            height: '65px',
+                            width: '40px',
+                            height: '55px',
                             cursor: disabled ? 'default' : 'pointer',
-                            filter: 'drop-shadow(0 15px 15px rgba(0,0,0,0.5))'
                         }}
                         onClick={!disabled ? () => onRoll() : undefined}
                     >
@@ -82,26 +75,31 @@ const DiceControl = ({ onRoll, disabled, diceValue, rawDiceState }) => {
                 onClick={() => onRoll()}
                 disabled={disabled}
                 style={{
-                    boxShadow: '0 0 20px rgba(255,215,0,0.1)'
+                    backgroundColor: 'rgba(255,215,0,0.1)',
+                    border: '1px solid var(--liquid-gold)',
+                    padding: '8px 20px',
+                    fontSize: '0.85rem',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
                 }}
             >
-                {disabled ? (diceValue || "...") : "ROLL COWRIES"}
+                {disabled ? (diceValue || "...") : "ROLL"}
             </button>
 
             {diceValue !== null && (
                 <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     key={diceValue}
                     style={{
-                        marginTop: '15px',
-                        fontSize: '2.5rem',
+                        position: 'absolute',
+                        top: '-40px',
+                        fontSize: '2rem',
                         color: 'var(--liquid-gold)',
-                        fontWeight: '900',
-                        textShadow: '0 0 20px var(--gold-glow)'
+                        fontWeight: '100',
+                        letterSpacing: '5px'
                     }}
                 >
-                    {diceValue === 4 ? "CHAMMA!" : diceValue === 8 ? "ASHTA!" : diceValue}
+                    {diceValue}
                 </motion.div>
             )}
         </div>

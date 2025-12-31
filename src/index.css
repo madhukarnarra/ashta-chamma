@@ -1,20 +1,20 @@
 :root {
-  /* Liquid Gold & Glass Theme */
-  --bg-deep: #080808;
-  --smoke-glass: rgba(20, 20, 20, 0.6);
+  /* Gilded Obsidian Theme */
+  --obsidian-black: #050505;
   --liquid-gold: #FFD700;
-  --gold-glow: rgba(255, 215, 0, 0.4);
-  --gold-leaf: #B8860B;
+  --liquid-gold-glow: rgba(255, 215, 0, 0.5);
+  --glass-smoke: rgba(15, 15, 15, 0.7);
+  --glass-border: rgba(255, 215, 0, 0.2);
 
-  /* Crystal Player Colors */
-  --p0-crystal: #ff4444;
-  /* Red */
-  --p1-crystal: #00ff88;
-  /* Green */
-  --p2-crystal: #ffff44;
-  /* Yellow/Gold */
-  --p3-crystal: #4488ff;
-  /* Blue */
+  /* Crystal Player Colors (Inner Glow) */
+  --p0-crystal: #ff2a2a;
+  /* Neon Red */
+  --p1-crystal: #00ff9d;
+  /* Neon Green */
+  --p2-crystal: #ffd900;
+  /* Neon Gold/Yellow */
+  --p3-crystal: #0084ff;
+  /* Neon Blue */
 
   --perspective: 1200px;
 }
@@ -32,10 +32,9 @@ html {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: var(--bg-deep);
+  background-color: var(--obsidian-black);
   background-image:
-    radial-gradient(circle at 50% -20%, #2a2a00 0%, transparent 60%),
-    radial-gradient(circle at 50% 120%, #1a1a1a 0%, transparent 60%);
+    radial-gradient(circle at 50% 50%, #151515 0%, #050505 100%);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: #fff;
 }
@@ -53,6 +52,7 @@ html {
   overflow: hidden;
 }
 
+/* Gilded obsidian Board Wrapper */
 .board-3d-wrapper {
   display: flex;
   justify-content: center;
@@ -64,41 +64,14 @@ html {
 
 .chalk-board {
   position: relative;
-  background: var(--smoke-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 4px solid #1a1a1a;
+  background: var(--obsidian-black);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border);
   box-shadow:
-    0 40px 100px rgba(0, 0, 0, 0.8),
-    inset 0 0 40px rgba(255, 215, 0, 0.05);
+    0 50px 100px -20px rgba(0, 0, 0, 1),
+    0 0 30px rgba(255, 215, 0, 0.05);
   border-radius: 4px;
-}
-
-/* Ornate Gold Corner Accents */
-.chalk-board::before,
-.chalk-board::after {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--liquid-gold);
-  z-index: 5;
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.chalk-board::before {
-  top: -2px;
-  left: -2px;
-  border-right: 0;
-  border-bottom: 0;
-}
-
-.chalk-board::after {
-  bottom: -2px;
-  right: -2px;
-  border-left: 0;
-  border-top: 0;
 }
 
 .cell {
@@ -110,35 +83,36 @@ html {
 }
 
 button {
-  background: rgba(40, 40, 40, 0.8);
+  background: rgba(255, 215, 0, 0.05);
   backdrop-filter: blur(10px);
-  border: 1px solid var(--liquid-gold);
+  border: 1px solid var(--glass-border);
   color: var(--liquid-gold);
-  padding: 0.8em 2em;
-  font-size: 1em;
-  font-weight: 700;
+  padding: 0.8em 1.6em;
+  font-size: 0.9em;
+  font-weight: 600;
   text-transform: uppercase;
   border-radius: 2px;
   cursor: pointer;
   transition: all 0.3s;
   letter-spacing: 2px;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
 }
 
 button:hover {
-  background: var(--liquid-gold);
-  color: #000;
-  box-shadow: 0 0 20px var(--gold-glow);
+  background: rgba(255, 215, 0, 0.1);
+  border-color: var(--liquid-gold);
+  box-shadow: 0 0 20px var(--liquid-gold-glow);
+  transform: translateY(-2px);
 }
 
 button:active {
-  transform: scale(0.96);
+  transform: translateY(0) scale(0.96);
 }
 
 button:disabled {
   opacity: 0.2;
   cursor: not-allowed;
-  filter: grayscale(1);
+  transform: none;
+  box-shadow: none;
 }
 
 ::-webkit-scrollbar {
